@@ -214,12 +214,14 @@ check_tx (void *vprocessor)
     char *repo_id = priv->repo_id;
 
     if (!seaf_repo_manager_repo_exists (seaf->repo_mgr, repo_id)) {
+        seaf_warning ("Repo %.10s doesn't exist.\n", repo_id);
         priv->rsp_code = g_strdup(SC_BAD_REPO);
         priv->rsp_msg = g_strdup(SS_BAD_REPO);
         goto out;
     }
 
     if (decrypt_token (processor) < 0) {
+        seaf_warning ("Failed to decrypt token for repo %.10s.\n", repo_id);
         priv->rsp_code = g_strdup(SC_ACCESS_DENIED);
         priv->rsp_msg = g_strdup(SS_ACCESS_DENIED);
         goto out;
@@ -229,6 +231,8 @@ check_tx (void *vprocessor)
         seaf->repo_mgr, repo_id, priv->token);
     
     if (!user) {
+        seaf_warning ("Cannot find token %.8s for repo %.10s.\n",
+                      repo_id, priv->token);
         priv->rsp_code = g_strdup(SC_ACCESS_DENIED);
         priv->rsp_msg = g_strdup(SS_ACCESS_DENIED);
         goto out;
@@ -246,6 +250,8 @@ check_tx (void *vprocessor)
     if (!perm ||
         (strcmp (perm, "r") == 0 && priv->type == CHECK_TX_TYPE_UPLOAD))
     {
+        seaf_warning ("User %s cannot access repo %.10s, permission %s.\n",
+                      user, repo_id, perm ? perm : "None");
         priv->rsp_code = g_strdup(SC_ACCESS_DENIED);
         priv->rsp_msg = g_strdup(SS_ACCESS_DENIED);
         g_free (perm);
